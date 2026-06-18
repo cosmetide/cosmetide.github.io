@@ -6,6 +6,7 @@ function App() {
   const [showLine2, setShowLine2] = useState(false)
   const [showHome, setShowHome] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const audioRef = useRef(null)
 
   useEffect(() => {
@@ -28,7 +29,12 @@ function App() {
 
   const toggleMute = () => {
     if (audioRef.current) {
-      audioRef.current.muted = !audioRef.current.muted
+      if (audioRef.current.muted) {
+        audioRef.current.muted = false
+        audioRef.current.play().catch(() => {})
+      } else {
+        audioRef.current.muted = true
+      }
       setIsMuted(audioRef.current.muted)
     }
   }
@@ -65,13 +71,18 @@ function App() {
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
         <nav className="navbar">
           <span className="nav-title">cosmetide</span>
-          <div className="nav-links">
+          <button type="button" className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
+          <div className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
             <button type="button" className="nav-btn nav-sound" onClick={toggleMute}>
               music {isMuted ? 'off' : 'on'}
             </button>
-            <a href="#about" className="nav-btn">about</a>
-            <a href="#projects" className="nav-btn">projects</a>
-            <a href="https://github.com/cosmetide" className="nav-btn">github</a>
+            <a href="#about" className="nav-btn" onClick={() => setIsMenuOpen(false)}>about</a>
+            <a href="#projects" className="nav-btn" onClick={() => setIsMenuOpen(false)}>projects</a>
+            <a href="https://github.com/cosmetide" className="nav-btn" onClick={() => setIsMenuOpen(false)}>github</a>
           </div>
         </nav>
 
