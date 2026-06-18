@@ -180,7 +180,7 @@ function App() {
           </div>
           built with {'</3'} by cosmetide
           <div className="footer-credit">
-            'Echoes' by Scott Buckley — CC-BY 4.0
+            'Cobalt' by Scott Buckley — CC-BY 4.0
           </div>
         </footer>
       </main>
