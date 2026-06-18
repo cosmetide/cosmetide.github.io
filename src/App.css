@@ -56,6 +56,7 @@ a {
   opacity: 1;
   transition: opacity 1.2s ease;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .intro.fade-out {
@@ -436,6 +437,64 @@ a {
   color: #fca5a5;
 }
 
+/* Activity timeline */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 2px solid #1e293b;
+  font-size: 11px;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.activity-repo {
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.activity-repo:hover {
+  color: #93c5fd;
+}
+
+.activity-type {
+  color: #94a3b8;
+  flex: 1;
+}
+
+.activity-time {
+  color: #64748b;
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.activity-loading {
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+  padding: 24px;
+}
+
 /* Mobile */
 @media (max-width: 640px) {
   .navbar {
@@ -562,6 +621,26 @@ a {
 
   .project-desc {
     font-size: 10px;
+  }
+
+  .activity-item {
+    font-size: 10px;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .activity-icon {
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .activity-repo {
+    font-size: 10px;
+  }
+
+  .activity-time {
+    font-size: 9px;
   }
 
   .line1,

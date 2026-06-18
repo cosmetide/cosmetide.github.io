@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 
 function App() {
@@ -8,6 +8,7 @@ function App() {
   const [isMuted, setIsMuted] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
+  const [events, setEvents] = useState([])
   const audioRef = useRef(null)
   const navRef = useRef(null)
   const timeoutRef = useRef([])
@@ -73,6 +74,60 @@ function App() {
     }
   }, [showHome])
 
+  useEffect(() => {
+    if (!showHome) return
+    fetch('https://api.github.com/users/cosmetide/events/public')
+      .then(res => res.json())
+      .then(setEvents)
+      .catch(() => setEvents([]))
+  }, [showHome])
+
+  const eventIcon = (type) => {
+    switch (type) {
+      case 'PushEvent': return '+'
+      case 'CreateEvent': return '*'
+      case 'DeleteEvent': return '-'
+      case 'WatchEvent': return '*'
+      case 'ForkEvent': return '^'
+      case 'IssuesEvent': return '!'
+      case 'PullRequestEvent': return '~'
+      case 'IssueCommentEvent': return '#'
+      case 'ReleaseEvent': return '>'
+      default: return '•'
+    }
+  }
+
+  const eventLabel = (type, payload) => {
+    switch (type) {
+      case 'PushEvent':
+        const n = payload.commits?.length || 0
+        return n === 1 ? '1 commit' : `${n} commits`
+      case 'CreateEvent': return 'created branch/tag'
+      case 'DeleteEvent': return 'deleted branch/tag'
+      case 'WatchEvent': return 'starred'
+      case 'ForkEvent': return 'forked'
+      case 'IssuesEvent':
+        return payload.action === 'opened' ? 'opened issue' : `${payload.action} issue`
+      case 'PullRequestEvent':
+        return payload.action === 'opened' ? 'opened pr' : `${payload.action} pr`
+      case 'IssueCommentEvent': return 'commented'
+      case 'ReleaseEvent': return 'released'
+      default: return type.replace('Event', '').toLowerCase()
+    }
+  }
+
+  const relativeTime = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    if (days < 30) return `${days}d ago`
+    return `${Math.floor(days / 30)}mo ago`
+  }
+
   const toggleMute = () => {
     if (audioRef.current) {
       if (audioRef.current.muted) {
@@ -87,7 +142,7 @@ function App() {
 
   useEffect(() => {
     const sections = document.querySelectorAll('[data-section]')
-    const titles = { hero: 'home', about: 'about', projects: 'projects' }
+    const titles = { hero: 'home', about: 'about', activity: 'activity', projects: 'projects' }
 
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
@@ -127,6 +182,7 @@ function App() {
               music {isMuted ? 'off' : 'on'}
             </button>
             <a href="#about" className="nav-btn" onClick={() => setIsMenuOpen(false)}>about</a>
+            <a href="#activity" className="nav-btn" onClick={() => setIsMenuOpen(false)}>activity</a>
             <a href="#projects" className="nav-btn" onClick={() => setIsMenuOpen(false)}>projects</a>
             <a href="https://github.com/cosmetide" className="nav-btn" onClick={() => setIsMenuOpen(false)}>github</a>
           </div>
@@ -153,10 +209,31 @@ function App() {
           <h2 className="section-title">/ about me</h2>
           <div className="section-card">
             <p>
-              i'm a hobbyist developer focused on minecraft preservation and modding.
-              i work on reviving old versions of the game like minecraft earth and
-              legacy console edition, and building tools for the community.
+              i'm just interested in old minecraft games like minecraft earth
+              and legacy console edition and helping bring them back.
             </p>
+          </div>
+        </section>
+
+        <section id="activity" className="section" data-section="activity">
+          <h2 className="section-title">/ activity</h2>
+          <div className="section-card">
+            {events.length === 0 ? (
+              <p className="activity-loading">loading...</p>
+            ) : (
+              <div className="activity-list">
+                {events.map((e, i) => (
+                  <div className="activity-item" key={i}>
+                    <span className="activity-icon">{eventIcon(e.type)}</span>
+                    <a href={`https://github.com/${e.repo.name}`} className="activity-repo">
+                      {e.repo.name}
+                    </a>
+                    <span className="activity-type">{eventLabel(e.type, e.payload)}</span>
+                    <span className="activity-time">{relativeTime(e.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -197,7 +274,7 @@ function App() {
               </div>
               <h3>KC-Website</h3>
               <p className="project-desc">
-                a website project — details tbd
+                website for the kowhaifan clubhouse lce server
               </p>
               <div className="project-meta">
                 <span className="project-lang">HTML</span>
