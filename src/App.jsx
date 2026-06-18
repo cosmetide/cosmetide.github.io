@@ -152,9 +152,7 @@ function App() {
 
   const eventLabel = (type, payload) => {
     switch (type) {
-      case 'PushEvent':
-        const n = payload.size || 0
-        return n === 1 ? '1 commit' : `${n} commits`
+      case 'PushEvent': return 'pushed'
       case 'CreateEvent': return 'created branch/tag'
       case 'DeleteEvent': return 'deleted branch/tag'
       case 'WatchEvent': return 'starred'
@@ -230,11 +228,11 @@ function App() {
           <section className="section activity-page">
             <h2 className="section-title">/ activity</h2>
             <div className="section-card">
-              {events.length === 0 ? (
-                <p className="activity-loading">loading...</p>
-              ) : (
-                <div className="activity-list">
-                  {events.map((e, i) => (
+            {events.filter(e => e.repo.name !== 'cosmetide/cosmetide.github.io').length === 0 ? (
+              <p className="activity-loading">no recent activity on other repositories</p>
+            ) : (
+              <div className="activity-list">
+                {events.filter(e => e.repo.name !== 'cosmetide/cosmetide.github.io').map((e, i) => (
                     <div className="activity-item" key={i}>
                       <span className="activity-icon">{eventIcon(e.type)}</span>
                       <a href={`https://github.com/${e.repo.name}`} className="activity-repo">
