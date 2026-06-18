@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
@@ -9,6 +9,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [events, setEvents] = useState([])
+  const [repos, setRepos] = useState([])
   const audioRef = useRef(null)
   const navRef = useRef(null)
   const timeoutRef = useRef([])
@@ -80,6 +81,10 @@ function App() {
       .then(res => res.json())
       .then(setEvents)
       .catch(() => setEvents([]))
+    fetch('https://api.github.com/users/cosmetide/repos?sort=updated&per_page=100')
+      .then(res => res.json())
+      .then(setRepos)
+      .catch(() => setRepos([]))
   }, [showHome])
 
   const eventIcon = (type) => {
@@ -240,46 +245,27 @@ function App() {
         <section id="projects" className="section" data-section="projects">
           <h2 className="section-title">/ projects</h2>
           <div className="projects-grid">
-            <a href="https://github.com/cosmetide/Solace" className="project-card">
-              <div className="project-badges">
-                <span className="badge badge-fork">fork</span>
-                <span className="badge badge-contributor">contributor</span>
-              </div>
-              <h3>Solace</h3>
-              <p className="project-desc">
-                replacement server for minecraft earth written in C#.
-                aims to let people play the game after official shutdown.
-              </p>
-              <div className="project-meta">
-                <span className="project-lang">C#</span>
-                <span className="project-updated">9 contributions</span>
-              </div>
-            </a>
-            <a href="https://github.com/cosmetide/Minecraft_Earth_Patcher" className="project-card">
-              <div className="project-badges">
-                <span className="badge badge-fork">fork</span>
-              </div>
-              <h3>MC Earth Patcher</h3>
-              <p className="project-desc">
-                patches minecraft earth apks to use custom api and login
-                servers for private servers.
-              </p>
-              <div className="project-meta">
-                <span className="project-lang">C#</span>
-              </div>
-            </a>
-            <a href="https://github.com/cosmetide/KC-Website" className="project-card">
-              <div className="project-badges">
-                <span className="badge badge-original">original</span>
-              </div>
-              <h3>KC-Website</h3>
-              <p className="project-desc">
-                website for the kowhaifan clubhouse lce server
-              </p>
-              <div className="project-meta">
-                <span className="project-lang">HTML</span>
-              </div>
-            </a>
+            {repos.length === 0 ? (
+              <p className="activity-loading" style={{ gridColumn: '1 / -1' }}>loading...</p>
+            ) : (
+              repos.map(repo => (
+                <a key={repo.id} href={repo.html_url} className="project-card">
+                  <div className="project-badges">
+                    <span className={`badge ${repo.fork ? 'badge-fork' : 'badge-original'}`}>
+                      {repo.fork ? 'fork' : 'original'}
+                    </span>
+                  </div>
+                  <h3>{repo.name}</h3>
+                  <p className="project-desc">
+                    {repo.description || ''}
+                  </p>
+                  <div className="project-meta">
+                    <span className="project-lang">{repo.language || '?'}</span>
+                    <span className="project-updated">{relativeTime(repo.pushed_at)}</span>
+                  </div>
+                </a>
+              ))
+            )}
             <a className="project-card blocked">
               <div className="project-badges">
                 <span className="badge badge-blocked">blocked</span>
