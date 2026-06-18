@@ -10,6 +10,8 @@ function App() {
   const [hasInteracted, setHasInteracted] = useState(false)
   const audioRef = useRef(null)
   const navRef = useRef(null)
+  const timeoutRef = useRef([])
+  const clickTimesRef = useRef([])
 
   useEffect(() => {
     const handler = () => {
@@ -35,16 +37,35 @@ function App() {
   }, [isMenuOpen])
 
   useEffect(() => {
-    const t1 = setTimeout(() => setShowLine1(true), 500)
-    const t2 = setTimeout(() => setShowLine1(false), 3000)
-    const t3 = setTimeout(() => setShowLine2(true), 3500)
-    const t4 = setTimeout(() => setShowLine2(false), 6000)
-    const t5 = setTimeout(() => setShowHome(true), 7000)
-    return () => {
-      clearTimeout(t1); clearTimeout(t2)
-      clearTimeout(t3); clearTimeout(t4); clearTimeout(t5)
-    }
+    const ids = [
+      setTimeout(() => setShowLine1(true), 500),
+      setTimeout(() => setShowLine1(false), 3000),
+      setTimeout(() => setShowLine2(true), 3500),
+      setTimeout(() => setShowLine2(false), 6000),
+      setTimeout(() => setShowHome(true), 7000),
+    ]
+    timeoutRef.current = ids
+    return () => ids.forEach(clearTimeout)
   }, [])
+
+  const skipIntro = () => {
+    timeoutRef.current.forEach(clearTimeout)
+    setShowLine1(false)
+    setShowLine2(false)
+    setShowHome(true)
+  }
+
+  const handleIntroClick = () => {
+    const now = Date.now()
+    const times = clickTimesRef.current
+    times.push(now)
+    while (times.length > 0 && times[0] < now - 1000) {
+      times.shift()
+    }
+    if (times.length >= 3) {
+      skipIntro()
+    }
+  }
 
   useEffect(() => {
     if (showHome && audioRef.current) {
@@ -84,7 +105,7 @@ function App() {
 
   return (
     <div className="app">
-      <div className={`intro ${showHome ? 'fade-out' : ''}`}>
+      <div className={`intro ${showHome ? 'fade-out' : ''}`} onClick={handleIntroClick}>
         <p className={`line1 ${showLine1 ? 'visible' : ''}`}>
           Well hello there!
         </p>
