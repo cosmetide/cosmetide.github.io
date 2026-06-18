@@ -32,27 +32,85 @@ function App() {
         <nav className="navbar">
           <span className="nav-title">cosmetide</span>
           <div className="nav-links">
-            <button className="nav-btn">about</button>
-            <button className="nav-btn">projects</button>
-            <button className="nav-btn">contact</button>
+            <a href="#about" className="nav-btn">about</a>
+            <a href="#projects" className="nav-btn">projects</a>
+            <a href="https://github.com/cosmetide" className="nav-btn">github</a>
           </div>
         </nav>
-        <div className="hero">
+
+        <section className="hero">
           <div className="hero-left">
             <img src="/profile.png" alt="profile" className="profile-pic" />
           </div>
           <div className="hero-right">
             <h1>cosmetide</h1>
-            <p className="tagline">welcome to my corner of the web</p>
+            <p className="tagline">
+              i break minecraft games and try to put them back together
+            </p>
+            <div className="hero-skills">
+              <span className="skill-tag">C#</span>
+              <span className="skill-tag">C++</span>
+              <span className="skill-tag">reverse engineering</span>
+              <span className="skill-tag">minecraft modding</span>
+            </div>
             <div className="buttons">
-              <button className="mc-btn">about me</button>
-              <button className="mc-btn">my projects</button>
-              <button className="mc-btn">contact</button>
+              <a href="#projects" className="mc-btn">my projects</a>
+              <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section id="about" className="section">
+          <h2 className="section-title">/ about me</h2>
+          <div className="section-card">
+            <p>
+              i'm a hobbyist developer focused on minecraft preservation and modding.
+              i work on reviving old versions of the game like minecraft earth and
+              legacy console edition, and building tools for the community.
+            </p>
+          </div>
+        </section>
+
+        <section id="projects" className="section">
+          <h2 className="section-title">/ projects</h2>
+          <div className="projects-grid">
+            <a href="https://github.com/cosmetide/Solace" className="project-card">
+              <h3>Solace</h3>
+              <p className="project-desc">
+                replacement server for minecraft earth written in C#.
+                aims to let people play the game after official shutdown.
+              </p>
+              <div className="project-meta">
+                <span className="project-lang">C#</span>
+                <span className="project-updated">updated recently</span>
+              </div>
+            </a>
+            <a href="https://github.com/cosmetide/Minecraft_Earth_Patcher" className="project-card">
+              <h3>MC Earth Patcher</h3>
+              <p className="project-desc">
+                patches minecraft earth apks to use custom api and login
+                servers for private servers.
+              </p>
+              <div className="project-meta">
+                <span className="project-lang">C#</span>
+                <span className="project-updated">1 star</span>
+              </div>
+            </a>
+            <a href="https://github.com/cosmetide/LCE-Revelations" className="project-card">
+              <h3>LCE Revelations</h3>
+              <p className="project-desc">
+                legacy console edition research and modding tools
+                for exploring the xbox 360 / ps3 versions of minecraft.
+              </p>
+              <div className="project-meta">
+                <span className="project-lang">C++</span>
+              </div>
+            </a>
+          </div>
+        </section>
+
         <footer className="footer">
-          built with <span className="footer-heart">{'<'}/3{'>'}</span> by cosmetide
+          built with {'</3'} by cosmetide
         </footer>
       </main>
     </div>

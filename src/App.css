@@ -12,19 +12,25 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Minecraftia', monospace;
-  background: #1a1a2e;
-  color: #e8e8f0;
+  background: #0f172a;
+  color: #e2e8f0;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .app {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
 }
 
@@ -36,7 +42,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #1a1a2e;
+  background: #0f172a;
   z-index: 100;
   opacity: 1;
   transition: opacity 1.2s ease;
@@ -55,7 +61,7 @@ body {
   line-height: 2;
   opacity: 0;
   transition: opacity 1s ease;
-  color: #ffaa00;
+  color: #60a5fa;
 }
 
 .line1.visible,
@@ -73,14 +79,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px 32px;
-  background: #1e1e36;
-  border-bottom: 4px solid #3a3a5a;
+  background: #0f172a;
+  border-bottom: 4px solid #1e293b;
   z-index: 50;
 }
 
 .nav-title {
   font-size: 18px;
-  color: #ffaa00;
+  color: #60a5fa;
   text-transform: uppercase;
 }
 
@@ -93,19 +99,20 @@ body {
   font-family: 'Minecraftia', monospace;
   font-size: 12px;
   padding: 8px 16px;
-  background: #3a3a5e;
-  border: 3px solid #6a6a8e;
-  color: #c8c8e0;
+  background: #1e293b;
+  border: 3px solid #475569;
+  color: #cbd5e1;
   cursor: pointer;
   text-transform: uppercase;
-  box-shadow: 3px 3px 0 #1a1a2e;
+  box-shadow: 3px 3px 0 #0a0f1a;
   transition: all 0.05s linear;
   image-rendering: pixelated;
 }
 
 .nav-btn:hover {
-  background: #4a4a6e;
-  box-shadow: 2px 2px 0 #1a1a2e;
+  background: #334155;
+  border-color: #60a5fa;
+  box-shadow: 2px 2px 0 #0a0f1a;
   transform: translate(1px, 1px);
 }
 
@@ -132,7 +139,7 @@ body {
   justify-content: center;
   gap: 48px;
   min-height: 100vh;
-  padding: 100px 32px 80px;
+  padding: 120px 32px 80px;
 }
 
 .hero-left {
@@ -142,31 +149,47 @@ body {
 .profile-pic {
   width: 150px;
   height: 150px;
-  border: 4px solid #ffaa00;
+  border: 4px solid #3b82f6;
   padding: 4px;
-  background: #252540;
+  background: #1e293b;
   image-rendering: pixelated;
   object-fit: cover;
   box-shadow:
-    0 0 16px rgba(255, 170, 0, 0.3),
-    4px 4px 0 #0d0d1a;
+    0 0 20px rgba(59, 130, 246, 0.25),
+    4px 4px 0 #0a0f1a;
 }
 
 .hero-right {
-  max-width: 500px;
+  max-width: 520px;
 }
 
 .hero-right h1 {
   font-size: 48px;
   margin-bottom: 12px;
-  color: #e8e8f0;
+  color: #e2e8f0;
 }
 
 .tagline {
-  font-size: 14px;
-  color: #8888aa;
-  margin-bottom: 32px;
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 24px;
   line-height: 1.8;
+}
+
+.hero-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.skill-tag {
+  font-size: 10px;
+  padding: 6px 12px;
+  background: #1e293b;
+  border: 2px solid #3b82f6;
+  color: #93c5fd;
+  text-transform: lowercase;
 }
 
 .buttons {
@@ -175,25 +198,25 @@ body {
   flex-wrap: wrap;
 }
 
-/* Minecraft button */
 .mc-btn {
   font-family: 'Minecraftia', monospace;
   font-size: 14px;
   padding: 12px 24px;
-  background: #3a3a5e;
-  border: 4px solid #6a6a8e;
-  color: #e8e8f0;
+  background: #3b82f6;
+  border: 4px solid #60a5fa;
+  color: #f8fafc;
   cursor: pointer;
   text-transform: uppercase;
-  box-shadow: 4px 4px 0 #0d0d1a;
+  box-shadow: 4px 4px 0 #0a0f1a;
   transition: all 0.05s linear;
   image-rendering: pixelated;
+  display: inline-block;
 }
 
 .mc-btn:hover {
-  background: #4a4a6e;
-  border-color: #8a8aaa;
-  box-shadow: 3px 3px 0 #0d0d1a;
+  background: #60a5fa;
+  border-color: #93c5fd;
+  box-shadow: 3px 3px 0 #0a0f1a;
   transform: translate(1px, 1px);
 }
 
@@ -202,15 +225,123 @@ body {
   transform: translate(4px, 4px);
 }
 
+.mc-btn-outline {
+  font-family: 'Minecraftia', monospace;
+  font-size: 14px;
+  padding: 12px 24px;
+  background: transparent;
+  border: 4px solid #475569;
+  color: #cbd5e1;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 #0a0f1a;
+  transition: all 0.05s linear;
+  image-rendering: pixelated;
+  display: inline-block;
+}
+
+.mc-btn-outline:hover {
+  border-color: #60a5fa;
+  color: #93c5fd;
+  box-shadow: 3px 3px 0 #0a0f1a;
+  transform: translate(1px, 1px);
+}
+
+.mc-btn-outline:active {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+/* Sections */
+.section {
+  padding: 80px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 20px;
+  color: #60a5fa;
+  margin-bottom: 24px;
+  text-transform: lowercase;
+}
+
+.section-card {
+  background: #1e293b;
+  border: 4px solid #334155;
+  padding: 32px;
+  box-shadow: 4px 4px 0 #0a0f1a;
+}
+
+.section-card p {
+  font-size: 12px;
+  line-height: 2;
+  color: #cbd5e1;
+}
+
+/* Projects grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  display: block;
+  background: #1e293b;
+  border: 4px solid #334155;
+  padding: 24px;
+  box-shadow: 4px 4px 0 #0a0f1a;
+  transition: all 0.05s linear;
+}
+
+.project-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 3px 3px 0 #0a0f1a;
+  transform: translate(1px, 1px);
+}
+
+.project-card h3 {
+  font-size: 14px;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.project-desc {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.project-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.project-lang {
+  font-size: 10px;
+  padding: 4px 8px;
+  background: #0f172a;
+  border: 2px solid #475569;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.project-updated {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: lowercase;
+}
+
 /* Footer */
 .footer {
   text-align: center;
-  padding: 24px 32px;
-  border-top: 4px solid #3a3a5a;
+  padding: 32px;
+  border-top: 4px solid #1e293b;
   font-size: 11px;
-  color: #666688;
-}
-
-.footer-heart {
-  color: #ff6b6b;
+  color: #475569;
+  text-transform: lowercase;
 }
