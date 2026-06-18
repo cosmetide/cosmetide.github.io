@@ -390,7 +390,58 @@ a {
     padding: 18px;
   }
 
-  .project-card h3 {
+.project-card.blocked {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.project-card.blocked:hover {
+  border-color: #334155;
+  box-shadow: 4px 4px 0 #0a0f1a;
+  transform: none;
+}
+
+.project-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9px;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.badge-fork {
+  background: #0f172a;
+  border-color: #64748b;
+  color: #94a3b8;
+}
+
+.badge-contributor {
+  background: #0f172a;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.badge-original {
+  background: #0f172a;
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+.badge-blocked {
+  background: #0f172a;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.project-card h3 {
     font-size: 12px;
   }
 

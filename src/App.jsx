@@ -70,6 +70,10 @@ function App() {
           <h2 className="section-title">/ projects</h2>
           <div className="projects-grid">
             <a href="https://github.com/cosmetide/Solace" className="project-card">
+              <div className="project-badges">
+                <span className="badge badge-fork">fork</span>
+                <span className="badge badge-contributor">contributor</span>
+              </div>
               <h3>Solace</h3>
               <p className="project-desc">
                 replacement server for minecraft earth written in C#.
@@ -77,10 +81,13 @@ function App() {
               </p>
               <div className="project-meta">
                 <span className="project-lang">C#</span>
-                <span className="project-updated">updated recently</span>
+                <span className="project-updated">9 contributions</span>
               </div>
             </a>
             <a href="https://github.com/cosmetide/Minecraft_Earth_Patcher" className="project-card">
+              <div className="project-badges">
+                <span className="badge badge-fork">fork</span>
+              </div>
               <h3>MC Earth Patcher</h3>
               <p className="project-desc">
                 patches minecraft earth apks to use custom api and login
@@ -88,14 +95,27 @@ function App() {
               </p>
               <div className="project-meta">
                 <span className="project-lang">C#</span>
-                <span className="project-updated">1 star</span>
               </div>
             </a>
-            <a href="https://github.com/cosmetide/LCE-Revelations" className="project-card">
+            <a href="https://github.com/cosmetide/KC-Website" className="project-card">
+              <div className="project-badges">
+                <span className="badge badge-original">original</span>
+              </div>
+              <h3>KC-Website</h3>
+              <p className="project-desc">
+                a website project — details tbd
+              </p>
+              <div className="project-meta">
+                <span className="project-lang">HTML</span>
+              </div>
+            </a>
+            <a className="project-card blocked">
+              <div className="project-badges">
+                <span className="badge badge-blocked">blocked</span>
+              </div>
               <h3>LCE Revelations</h3>
               <p className="project-desc">
-                legacy console edition research and modding tools
-                for exploring the xbox 360 / ps3 versions of minecraft.
+                legacy console edition research — repo was blocked by github
               </p>
               <div className="project-meta">
                 <span className="project-lang">C++</span>
