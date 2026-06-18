@@ -47,12 +47,6 @@ function App() {
             <p className="tagline">
               i break minecraft games and try to put them back together
             </p>
-            <div className="hero-skills">
-              <span className="skill-tag">C#</span>
-              <span className="skill-tag">C++</span>
-              <span className="skill-tag">reverse engineering</span>
-              <span className="skill-tag">minecraft modding</span>
-            </div>
             <div className="buttons">
               <a href="#projects" className="mc-btn">my projects</a>
               <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
