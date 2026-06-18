@@ -7,7 +7,32 @@ function App() {
   const [showHome, setShowHome] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [hasInteracted, setHasInteracted] = useState(false)
   const audioRef = useRef(null)
+  const navRef = useRef(null)
+
+  useEffect(() => {
+    const handler = () => {
+      if (!hasInteracted && audioRef.current) {
+        audioRef.current.muted = false
+        audioRef.current.play().catch(() => {})
+        setIsMuted(false)
+        setHasInteracted(true)
+      }
+    }
+    document.addEventListener('click', handler, { once: true })
+    return () => document.removeEventListener('click', handler)
+  }, [hasInteracted])
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (isMenuOpen && navRef.current && !navRef.current.contains(e.target)) {
+        setIsMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [isMenuOpen])
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowLine1(true), 500)
@@ -69,7 +94,7 @@ function App() {
       </div>
       <audio ref={audioRef} loop src="/music/bg.mp3" muted />
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
-        <nav className="navbar">
+        <nav className="navbar" ref={navRef}>
           <span className="nav-title">cosmetide</span>
           <button type="button" className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <span className="hamburger-line"></span>
@@ -96,7 +121,7 @@ function App() {
               just some random guy from the internet
             </p>
             <div className="buttons">
-              <a href="#projects" className="mc-btn">my projects</a>
+              <a href="#projects" className="mc-btn">{'>'} my projects</a>
               <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
               <a href="https://discord.com/users/1210499232239456307" className="mc-btn-outline">discord</a>
             </div>
