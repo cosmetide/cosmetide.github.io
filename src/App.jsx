@@ -153,7 +153,7 @@ function App() {
   const eventLabel = (type, payload) => {
     switch (type) {
       case 'PushEvent':
-        const n = payload.commits?.length || 0
+        const n = payload.size || 0
         return n === 1 ? '1 commit' : `${n} commits`
       case 'CreateEvent': return 'created branch/tag'
       case 'DeleteEvent': return 'deleted branch/tag'
@@ -221,7 +221,7 @@ function App() {
               music {isMuted ? 'off' : 'on'}
             </button>
             <a href="#about" className="nav-btn" onClick={handleNavClick}>about</a>
-            <a href="#projects" className="nav-btn" onClick={handleNavClick}>projects</a>
+            <a href="#activity" className="nav-btn" onClick={handleNavClick}>activity</a>
             <a href="https://github.com/cosmetide" className="nav-btn" onClick={handleNavClick}>github</a>
           </div>
         </nav>
@@ -261,7 +261,6 @@ function App() {
                 </p>
                 <div className="buttons">
                   <a href="#projects" className="mc-btn">{'>'} my projects</a>
-                  <a href="#activity" className="mc-btn-outline">activity</a>
                   <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
                   <a href="https://discord.com/users/1210499232239456307" className="mc-btn-outline">discord</a>
                 </div>
