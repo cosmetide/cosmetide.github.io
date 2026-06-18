@@ -205,7 +205,7 @@ function App() {
           </div>
           built with {'</3'} by cosmetide
           <div className="footer-credit">
-            'Cobalt' by Scott Buckley — CC-BY 4.0
+            'Moonlight' by Scott Buckley — CC-BY 4.0
           </div>
         </footer>
       </main>
