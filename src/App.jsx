@@ -45,11 +45,12 @@ function App() {
           <div className="hero-right">
             <h1>cosmetide</h1>
             <p className="tagline">
-              i break minecraft games and try to put them back together
+              just some random guy from the internet
             </p>
             <div className="buttons">
               <a href="#projects" className="mc-btn">my projects</a>
               <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
+              <a href="https://discord.com/users/1210499232239456307" className="mc-btn-outline">discord</a>
             </div>
           </div>
         </section>
@@ -104,6 +105,11 @@ function App() {
         </section>
 
         <footer className="footer">
+          <div className="footer-links">
+            <a href="https://github.com/cosmetide">github</a>
+            <span className="footer-sep">|</span>
+            <a href="https://discord.com/users/1210499232239456307">discord</a>
+          </div>
           built with {'</3'} by cosmetide
         </footer>
       </main>
