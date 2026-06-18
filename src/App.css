@@ -71,6 +71,16 @@ body {
   opacity: 1;
 }
 
+.profile-pic {
+  width: 120px;
+  height: 120px;
+  border: 4px solid #3a4a5a;
+  box-shadow: 4px 4px 0 #3a4a5a;
+  margin-bottom: 24px;
+  image-rendering: pixelated;
+  object-fit: cover;
+}
+
 .homepage h1 {
   font-size: 48px;
   margin-bottom: 16px;

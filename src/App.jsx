@@ -29,6 +29,7 @@ function App() {
         </p>
       </div>
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
+        <img src="/profile.png" alt="profile" className="profile-pic" />
         <h1>cosmetide</h1>
         <p className="tagline">welcome to my corner of the web</p>
         <div className="buttons">
