@@ -18,6 +18,24 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    const sections = document.querySelectorAll('[data-section]')
+    const titles = { hero: 'home', about: 'about', projects: 'projects' }
+
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const name = entry.target.getAttribute('data-section')
+          document.title = `cosmetide | ${titles[name] || name}`
+          break
+        }
+      }
+    }, { threshold: 0.3 })
+
+    sections.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [showHome])
+
   return (
     <div className="app">
       <div className={`intro ${showHome ? 'fade-out' : ''}`}>
@@ -38,7 +56,7 @@ function App() {
           </div>
         </nav>
 
-        <section className="hero">
+        <section className="hero" data-section="hero">
           <div className="hero-left">
             <img src="/profile.png" alt="profile" className="profile-pic" />
           </div>
@@ -55,7 +73,7 @@ function App() {
           </div>
         </section>
 
-        <section id="about" className="section">
+        <section id="about" className="section" data-section="about">
           <h2 className="section-title">/ about me</h2>
           <div className="section-card">
             <p>
@@ -66,7 +84,7 @@ function App() {
           </div>
         </section>
 
-        <section id="projects" className="section">
+        <section id="projects" className="section" data-section="projects">
           <h2 className="section-title">/ projects</h2>
           <div className="projects-grid">
             <a href="https://github.com/cosmetide/Solace" className="project-card">
