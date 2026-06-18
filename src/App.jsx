@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
   const [showLine1, setShowLine1] = useState(false)
   const [showLine2, setShowLine2] = useState(false)
   const [showHome, setShowHome] = useState(false)
+  const [isMuted, setIsMuted] = useState(true)
+  const audioRef = useRef(null)
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowLine1(true), 500)
@@ -17,6 +19,19 @@ function App() {
       clearTimeout(t3); clearTimeout(t4); clearTimeout(t5)
     }
   }, [])
+
+  useEffect(() => {
+    if (showHome && audioRef.current) {
+      audioRef.current.play().catch(() => {})
+    }
+  }, [showHome])
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !audioRef.current.muted
+      setIsMuted(audioRef.current.muted)
+    }
+  }
 
   useEffect(() => {
     const sections = document.querySelectorAll('[data-section]')
@@ -46,10 +61,14 @@ function App() {
           Welcome to my website :D
         </p>
       </div>
+      <audio ref={audioRef} loop src="/music/bg.mp3" muted />
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
         <nav className="navbar">
           <span className="nav-title">cosmetide</span>
           <div className="nav-links">
+            <button type="button" className="nav-btn nav-sound" onClick={toggleMute}>
+              music {isMuted ? 'off' : 'on'}
+            </button>
             <a href="#about" className="nav-btn">about</a>
             <a href="#projects" className="nav-btn">projects</a>
             <a href="https://github.com/cosmetide" className="nav-btn">github</a>
@@ -149,6 +168,9 @@ function App() {
             <a href="https://discord.com/users/1210499232239456307">discord</a>
           </div>
           built with {'</3'} by cosmetide
+          <div className="footer-credit">
+            'Echoes' by Scott Buckley — CC-BY 4.0
+          </div>
         </footer>
       </main>
     </div>

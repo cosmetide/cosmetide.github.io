@@ -121,6 +121,12 @@ a {
   transform: translate(3px, 3px);
 }
 
+.nav-sound {
+  background: #1e293b;
+  min-width: 100px;
+  text-align: center;
+}
+
 /* Homepage */
 .homepage {
   width: 100%;
@@ -507,5 +513,11 @@ a {
 }
 
 .footer-sep {
+  color: #334155;
+}
+
+.footer-credit {
+  margin-top: 8px;
+  font-size: 9px;
   color: #334155;
 }
