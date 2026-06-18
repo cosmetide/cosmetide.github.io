@@ -101,6 +101,10 @@ a {
   text-transform: uppercase;
 }
 
+.nav-title:hover {
+  color: #93c5fd;
+}
+
 .nav-links {
   display: flex;
   gap: 8px;

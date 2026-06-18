@@ -10,6 +10,7 @@ function App() {
   const [hasInteracted, setHasInteracted] = useState(false)
   const [events, setEvents] = useState([])
   const [repos, setRepos] = useState([])
+  const [route, setRoute] = useState('home')
   const audioRef = useRef(null)
   const navRef = useRef(null)
   const timeoutRef = useRef([])
@@ -38,7 +39,15 @@ function App() {
     return () => document.removeEventListener('mousedown', handler)
   }, [isMenuOpen])
 
+  const initialRoute = useRef(
+    window.location.hash.slice(1).toLowerCase() || 'home'
+  )
+
   useEffect(() => {
+    if (initialRoute.current === 'activity') {
+      setShowHome(true)
+      return
+    }
     const ids = [
       setTimeout(() => setShowLine1(true), 500),
       setTimeout(() => setShowLine1(false), 3000),
@@ -76,16 +85,55 @@ function App() {
   }, [showHome])
 
   useEffect(() => {
-    if (!showHome) return
-    fetch('https://api.github.com/users/cosmetide/events/public')
-      .then(res => res.json())
-      .then(setEvents)
-      .catch(() => setEvents([]))
     fetch('https://api.github.com/users/cosmetide/repos?sort=updated&per_page=100')
       .then(res => res.json())
       .then(setRepos)
       .catch(() => setRepos([]))
-  }, [showHome])
+  }, [])
+
+  useEffect(() => {
+    if (route !== 'activity') return
+    fetch('https://api.github.com/users/cosmetide/events/public')
+      .then(res => res.json())
+      .then(setEvents)
+      .catch(() => setEvents([]))
+  }, [route])
+
+  useEffect(() => {
+    const onHash = () => {
+      const hash = window.location.hash.slice(1).toLowerCase()
+      if (hash === 'activity') {
+        setRoute('activity')
+      } else {
+        setRoute('home')
+        if (hash) {
+          setTimeout(() => {
+            document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        }
+      }
+    }
+    window.addEventListener('hashchange', onHash)
+    onHash()
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  useEffect(() => {
+    if (route !== 'home') return
+    const sections = document.querySelectorAll('[data-section]')
+    const titles = { hero: 'home', about: 'about', projects: 'projects' }
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const name = entry.target.getAttribute('data-section')
+          document.title = `cosmetide | ${titles[name] || name}`
+          break
+        }
+      }
+    }, { threshold: 0.3 })
+    sections.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [route])
 
   const eventIcon = (type) => {
     switch (type) {
@@ -145,23 +193,9 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    const sections = document.querySelectorAll('[data-section]')
-    const titles = { hero: 'home', about: 'about', activity: 'activity', projects: 'projects' }
-
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          const name = entry.target.getAttribute('data-section')
-          document.title = `cosmetide | ${titles[name] || name}`
-          break
-        }
-      }
-    }, { threshold: 0.3 })
-
-    sections.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [showHome])
+  const handleNavClick = () => {
+    setIsMenuOpen(false)
+  }
 
   return (
     <div className="app">
@@ -176,7 +210,7 @@ function App() {
       <audio ref={audioRef} loop src="/music/bg.mp3" muted />
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
         <nav className="navbar" ref={navRef}>
-          <span className="nav-title">cosmetide</span>
+          <a href="#" className="nav-title">cosmetide</a>
           <button type="button" className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <span className="hamburger-line"></span>
             <span className="hamburger-line"></span>
@@ -186,106 +220,112 @@ function App() {
             <button type="button" className="nav-btn nav-sound" onClick={toggleMute}>
               music {isMuted ? 'off' : 'on'}
             </button>
-            <a href="#about" className="nav-btn" onClick={() => setIsMenuOpen(false)}>about</a>
-            <a href="#activity" className="nav-btn" onClick={() => setIsMenuOpen(false)}>activity</a>
-            <a href="#projects" className="nav-btn" onClick={() => setIsMenuOpen(false)}>projects</a>
-            <a href="https://github.com/cosmetide" className="nav-btn" onClick={() => setIsMenuOpen(false)}>github</a>
+            <a href="#about" className="nav-btn" onClick={handleNavClick}>about</a>
+            <a href="#projects" className="nav-btn" onClick={handleNavClick}>projects</a>
+            <a href="https://github.com/cosmetide" className="nav-btn" onClick={handleNavClick}>github</a>
           </div>
         </nav>
 
-        <section className="hero" data-section="hero">
-          <div className="hero-left">
-            <img src="/profile.png" alt="profile" className="profile-pic" />
-          </div>
-          <div className="hero-right">
-            <h1>cosmetide</h1>
-            <p className="tagline">
-              just some random guy from the internet
-            </p>
-            <div className="buttons">
-              <a href="#projects" className="mc-btn">{'>'} my projects</a>
-              <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
-              <a href="https://discord.com/users/1210499232239456307" className="mc-btn-outline">discord</a>
+        {route === 'activity' ? (
+          <section className="section activity-page">
+            <h2 className="section-title">/ activity</h2>
+            <div className="section-card">
+              {events.length === 0 ? (
+                <p className="activity-loading">loading...</p>
+              ) : (
+                <div className="activity-list">
+                  {events.map((e, i) => (
+                    <div className="activity-item" key={i}>
+                      <span className="activity-icon">{eventIcon(e.type)}</span>
+                      <a href={`https://github.com/${e.repo.name}`} className="activity-repo">
+                        {e.repo.name}
+                      </a>
+                      <span className="activity-type">{eventLabel(e.type, e.payload)}</span>
+                      <span className="activity-time">{relativeTime(e.created_at)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </section>
-
-        <section id="about" className="section" data-section="about">
-          <h2 className="section-title">/ about me</h2>
-          <div className="section-card">
-            <p>
-              i'm just interested in old minecraft games like minecraft earth
-              and legacy console edition and helping bring them back.
-            </p>
-          </div>
-        </section>
-
-        <section id="activity" className="section" data-section="activity">
-          <h2 className="section-title">/ activity</h2>
-          <div className="section-card">
-            {events.length === 0 ? (
-              <p className="activity-loading">loading...</p>
-            ) : (
-              <div className="activity-list">
-                {events.map((e, i) => (
-                  <div className="activity-item" key={i}>
-                    <span className="activity-icon">{eventIcon(e.type)}</span>
-                    <a href={`https://github.com/${e.repo.name}`} className="activity-repo">
-                      {e.repo.name}
-                    </a>
-                    <span className="activity-type">{eventLabel(e.type, e.payload)}</span>
-                    <span className="activity-time">{relativeTime(e.created_at)}</span>
-                  </div>
-                ))}
+          </section>
+        ) : (
+          <>
+            <section className="hero" data-section="hero">
+              <div className="hero-left">
+                <img src="/profile.png" alt="profile" className="profile-pic" />
               </div>
-            )}
-          </div>
-        </section>
+              <div className="hero-right">
+                <h1>cosmetide</h1>
+                <p className="tagline">
+                  just some random guy from the internet
+                </p>
+                <div className="buttons">
+                  <a href="#projects" className="mc-btn">{'>'} my projects</a>
+                  <a href="#activity" className="mc-btn-outline">activity</a>
+                  <a href="https://github.com/cosmetide" className="mc-btn-outline">github</a>
+                  <a href="https://discord.com/users/1210499232239456307" className="mc-btn-outline">discord</a>
+                </div>
+              </div>
+            </section>
 
-        <section id="projects" className="section" data-section="projects">
-          <h2 className="section-title">/ projects</h2>
-          <div className="projects-grid">
-            {repos.length === 0 ? (
-              <p className="activity-loading" style={{ gridColumn: '1 / -1' }}>loading...</p>
-            ) : (
-              repos.map(repo => (
-                <a key={repo.id} href={repo.html_url} className="project-card">
+            <section id="about" className="section" data-section="about">
+              <h2 className="section-title">/ about me</h2>
+              <div className="section-card">
+                <p>
+                  i'm just interested in old minecraft games like minecraft earth
+                  and legacy console edition and helping bring them back.
+                </p>
+              </div>
+            </section>
+
+            <section id="projects" className="section" data-section="projects">
+              <h2 className="section-title">/ projects</h2>
+              <div className="projects-grid">
+                {repos.length === 0 ? (
+                  <p className="activity-loading" style={{ gridColumn: '1 / -1' }}>loading...</p>
+                ) : (
+                  repos.map(repo => (
+                    <a key={repo.id} href={repo.html_url} className="project-card">
+                      <div className="project-badges">
+                        <span className={`badge ${repo.fork ? 'badge-fork' : 'badge-original'}`}>
+                          {repo.fork ? 'fork' : 'original'}
+                        </span>
+                      </div>
+                      <h3>{repo.name}</h3>
+                      <p className="project-desc">
+                        {repo.description || ''}
+                      </p>
+                      <div className="project-meta">
+                        <span className="project-lang">{repo.language || '?'}</span>
+                        <span className="project-updated">{relativeTime(repo.pushed_at)}</span>
+                      </div>
+                    </a>
+                  ))
+                )}
+                <a className="project-card blocked">
                   <div className="project-badges">
-                    <span className={`badge ${repo.fork ? 'badge-fork' : 'badge-original'}`}>
-                      {repo.fork ? 'fork' : 'original'}
-                    </span>
+                    <span className="badge badge-blocked">blocked</span>
                   </div>
-                  <h3>{repo.name}</h3>
+                  <h3>LCE Revelations</h3>
                   <p className="project-desc">
-                    {repo.description || ''}
+                    legacy console edition research — repo was blocked by github
                   </p>
                   <div className="project-meta">
-                    <span className="project-lang">{repo.language || '?'}</span>
-                    <span className="project-updated">{relativeTime(repo.pushed_at)}</span>
+                    <span className="project-lang">C++</span>
                   </div>
                 </a>
-              ))
-            )}
-            <a className="project-card blocked">
-              <div className="project-badges">
-                <span className="badge badge-blocked">blocked</span>
               </div>
-              <h3>LCE Revelations</h3>
-              <p className="project-desc">
-                legacy console edition research — repo was blocked by github
-              </p>
-              <div className="project-meta">
-                <span className="project-lang">C++</span>
-              </div>
-            </a>
-          </div>
-        </section>
+            </section>
+          </>
+        )}
 
         <footer className="footer">
           <div className="footer-links">
             <a href="https://github.com/cosmetide">github</a>
             <span className="footer-sep">|</span>
             <a href="https://discord.com/users/1210499232239456307">discord</a>
+            <span className="footer-sep">|</span>
+            <a href="#activity">activity</a>
           </div>
           built with {'</3'} by cosmetide
           <div className="footer-credit">
