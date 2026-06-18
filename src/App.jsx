@@ -29,14 +29,31 @@ function App() {
         </p>
       </div>
       <main className={`homepage ${showHome ? 'visible' : ''}`}>
-        <img src="/profile.png" alt="profile" className="profile-pic" />
-        <h1>cosmetide</h1>
-        <p className="tagline">welcome to my corner of the web</p>
-        <div className="buttons">
-          <button className="mc-btn">about me</button>
-          <button className="mc-btn">my projects</button>
-          <button className="mc-btn">contact</button>
+        <nav className="navbar">
+          <span className="nav-title">cosmetide</span>
+          <div className="nav-links">
+            <button className="nav-btn">about</button>
+            <button className="nav-btn">projects</button>
+            <button className="nav-btn">contact</button>
+          </div>
+        </nav>
+        <div className="hero">
+          <div className="hero-left">
+            <img src="/profile.png" alt="profile" className="profile-pic" />
+          </div>
+          <div className="hero-right">
+            <h1>cosmetide</h1>
+            <p className="tagline">welcome to my corner of the web</p>
+            <div className="buttons">
+              <button className="mc-btn">about me</button>
+              <button className="mc-btn">my projects</button>
+              <button className="mc-btn">contact</button>
+            </div>
+          </div>
         </div>
+        <footer className="footer">
+          built with <span className="footer-heart">{'<'}/3{'>'}</span> by cosmetide
+        </footer>
       </main>
     </div>
   )
