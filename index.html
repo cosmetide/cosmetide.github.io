@@ -1,0 +1,1535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Walker</title>
+<style>
+:root {
+  color-scheme: dark;
+  --ui-scale: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #9fc6d1;
+}
+
+body {
+  user-select: none;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  outline: none;
+  touch-action: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#menuButton,
+#debugButton,
+.panel,
+#joystick,
+#jumpButton {
+  transform: scale(var(--ui-scale));
+}
+
+#menuButton,
+#sidebar,
+#minimapPanel {
+  transform-origin: top right;
+}
+
+#debugButton,
+#debugPanel {
+  transform-origin: top left;
+}
+
+#joystick {
+  transform-origin: bottom left;
+}
+
+#jumpButton {
+  transform-origin: bottom right;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #b8b8b8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202020;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+button:hover {
+  background: #eeeeee;
+}
+
+button:active {
+  background: #dddddd;
+}
+
+#menuButton,
+#debugButton {
+  position: absolute;
+  top: 12px;
+  min-width: 72px;
+  padding: 8px 12px;
+}
+
+#menuButton {
+  right: 12px;
+}
+
+#debugButton {
+  left: 12px;
+}
+
+.panel {
+  position: absolute;
+  border: 1px solid #b8b8b8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #202020;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  padding: 14px;
+  pointer-events: auto;
+}
+
+body.dark-mode {
+  color-scheme: dark;
+  background: #0b0e14;
+}
+
+body.light-mode {
+  color-scheme: light;
+}
+
+body.dark-mode button {
+  border-color: #3b4759;
+  background: #1b2330;
+  color: #f2f5f9;
+}
+
+body.dark-mode .close-button,
+body.dark-mode .close-button:hover,
+body.dark-mode .close-button:active {
+  background: transparent;
+}
+
+body.dark-mode button:hover {
+  background: #283447;
+}
+
+body.dark-mode button:active {
+  background: #334155;
+}
+
+body.dark-mode .panel {
+  border-color: #39475c;
+  background: #151c27;
+  color: #eef2f7;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .control output,
+body.dark-mode .debug-line span:last-child {
+  color: #a9b6c9;
+}
+
+body.dark-mode .control input[type="range"],
+body.dark-mode .toggle input {
+  accent-color: #9ec5ff;
+}
+
+body.dark-mode #joystick {
+  border-color: #d7e1f0;
+  background: rgba(20, 28, 40, 0.82);
+}
+
+body.dark-mode #joystickKnob,
+body.dark-mode #jumpButton {
+  border-color: #56657c;
+  background: #263244;
+  color: #f3f6fb;
+}
+
+body.dark-mode #minimap {
+  border-color: #4a5a70;
+}
+
+#sidebar {
+  top: 56px;
+  right: 12px;
+  width: min(300px, calc(100vw - 24px));
+  max-height: calc(100vh - 72px);
+  overflow: auto;
+}
+
+#debugPanel {
+  top: 56px;
+  left: 12px;
+  width: min(240px, calc(100vw - 24px));
+}
+
+#minimapPanel {
+  top: 56px;
+  right: 12px;
+  padding: 8px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.close-button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.control {
+  display: block;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+
+.control output {
+  float: right;
+  color: #555555;
+}
+
+.control input[type="range"] {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  accent-color: #555555;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 2px;
+  font-size: 13px;
+}
+
+.toggle input {
+  accent-color: #555555;
+}
+
+.debug-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.debug-line span:last-child {
+  color: #555555;
+  text-align: right;
+}
+
+#minimapButton {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+}
+
+#minimap {
+  display: block;
+  width: 180px;
+  height: 180px;
+  border: 1px solid #d0d0d0;
+  image-rendering: pixelated;
+}
+
+#mobileControls {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+
+#mobileControls.active {
+  display: block;
+}
+
+#joystick {
+  position: absolute;
+  bottom: 28px;
+  left: 24px;
+  width: 124px;
+  height: 124px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#joystickKnob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #b8b8b8;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+
+#jumpButton {
+  position: absolute;
+  right: 24px;
+  bottom: 42px;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: #ffffff;
+  font-weight: 700;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+@media (pointer: coarse), (max-width: 700px) {
+  #menuButton,
+  #debugButton {
+    top: 8px;
+  }
+
+  #menuButton {
+    right: 8px;
+  }
+
+  #debugButton {
+    left: 8px;
+  }
+
+  #sidebar,
+  #debugPanel,
+  #minimapPanel {
+    top: 48px;
+  }
+
+  #sidebar {
+    right: 8px;
+  }
+
+  #debugPanel {
+    left: 8px;
+  }
+
+  #minimapPanel {
+    right: 8px;
+  }
+}
+</style>
+</head>
+<body>
+<canvas id="game" tabindex="0" aria-label="First person procedural exploration game"></canvas>
+<div id="ui">
+  <button id="debugButton" type="button">Debug</button>
+  <button id="menuButton" type="button">Menu</button>
+  <aside id="sidebar" class="panel" hidden>
+    <div class="panel-title">Menu <button id="closeMenu" class="close-button" type="button" aria-label="Close menu">×</button></div>
+    <label class="control">Time <output id="timeValue">10:00</output><input id="timeInput" type="range" min="0" max="24" step="0.1" value="10"></label>
+    <label class="control">Render distance <output id="distanceValue">90</output><input id="distanceInput" type="range" min="35" max="120" step="5" value="90"></label>
+    <label class="control">Fog <output id="fogValue">84%</output><input id="fogInput" type="range" min="0" max="100" step="1" value="84"></label>
+    <label class="control">Look sensitivity <output id="sensitivityValue">1.0</output><input id="sensitivityInput" type="range" min="0.4" max="1.8" step="0.1" value="1"></label>
+     <label class="control">Walk speed <output id="speedValue">4.4</output><input id="speedInput" type="range" min="3" max="7" step="0.1" value="4.4"></label>
+     <label class="control">UI scale <output id="uiScaleValue">100%</output><input id="uiScaleInput" type="range" min="75" max="140" step="5" value="100"></label>
+     <label class="toggle"><input id="darkToggle" type="checkbox" checked> Dark mode</label>
+     <label class="toggle"><input id="mobileToggle" type="checkbox"> Show mobile controls</label>
+
+  </aside>
+  <aside id="debugPanel" class="panel" hidden>
+    <div class="panel-title">Debug <button id="closeDebug" class="close-button" type="button" aria-label="Close debug menu">×</button></div>
+    <div class="debug-line"><span>Coordinates</span><span id="coordinateValue">0.0, 0.0, 0.0</span></div>
+    <div class="debug-line"><span>FPS</span><span id="fpsValue">0</span></div>
+    <div class="debug-line"><span>Time</span><span id="debugTime">10:00</span></div>
+    <div class="debug-line"><span>Render distance</span><span id="debugDistance">90</span></div>
+    <button id="minimapButton" type="button">Minimap: Off</button>
+  </aside>
+  <div id="minimapPanel" class="panel" hidden>
+    <canvas id="minimap" width="180" height="180" aria-label="Minimap"></canvas>
+  </div>
+  <div id="mobileControls">
+    <div id="joystick" aria-label="Movement joystick"><div id="joystickKnob"></div></div>
+    <button id="jumpButton" type="button">Jump</button>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const menuButton = document.getElementById('menuButton');
+  const closeMenu = document.getElementById('closeMenu');
+  const sidebar = document.getElementById('sidebar');
+  const timeInput = document.getElementById('timeInput');
+  const timeValue = document.getElementById('timeValue');
+  const distanceInput = document.getElementById('distanceInput');
+  const distanceValue = document.getElementById('distanceValue');
+  const fogInput = document.getElementById('fogInput');
+  const fogValue = document.getElementById('fogValue');
+  const sensitivityInput = document.getElementById('sensitivityInput');
+  const sensitivityValue = document.getElementById('sensitivityValue');
+  const speedInput = document.getElementById('speedInput');
+  const speedValue = document.getElementById('speedValue');
+  const mobileToggle = document.getElementById('mobileToggle');
+  const debugButton = document.getElementById('debugButton');
+  const closeDebug = document.getElementById('closeDebug');
+  const debugPanel = document.getElementById('debugPanel');
+  const coordinateValue = document.getElementById('coordinateValue');
+  const fpsValue = document.getElementById('fpsValue');
+  const debugTime = document.getElementById('debugTime');
+  const debugDistance = document.getElementById('debugDistance');
+  const minimapButton = document.getElementById('minimapButton');
+  const minimapPanel = document.getElementById('minimapPanel');
+  const minimapCanvas = document.getElementById('minimap');
+  const minimapCtx = minimapCanvas.getContext('2d');
+  const mobileControls = document.getElementById('mobileControls');
+  const joystick = document.getElementById('joystick');
+  const joystickKnob = document.getElementById('joystickKnob');
+  const jumpButton = document.getElementById('jumpButton');
+  const ui = document.getElementById('ui');
+  const uiScaleInput = document.getElementById('uiScaleInput');
+  const uiScaleValue = document.getElementById('uiScaleValue');
+  const darkToggle = document.getElementById('darkToggle');
+  const worldSize = 72;
+  const terrainSize = worldSize + 1;
+  const halfWorld = worldSize / 2;
+  const cellSize = 5;
+  const eyeHeight = 1.65;
+  const nearPlane = 0.18;
+  let renderDistance = 90;
+  let timeOfDay = 10;
+  let fogStrength = 0.84;
+  let lookSensitivity = 1;
+  let movementSpeed = 4.4;
+  let uiScale = 1;
+  let darkMode = true;
+  const fogSteps = 14;
+  const sunDirection = normalize([0.42, 0.84, 0.34]);
+  const fogColor = [192, 201, 174];
+  const terrain = new Float32Array(terrainSize * terrainSize);
+  const faces = [];
+  const trees = [];
+  const stars = [];
+  const treeColliders = [];
+  const keys = Object.create(null);
+  let columns = 152;
+  let rows = 86;
+  let depthBuffer = new Float32Array(columns * rows);
+  let colorBuffer = new Array(columns * rows);
+  let focalLength = rows * 0.94;
+  let cameraX = 0;
+  let cameraY = 0;
+  let cameraZ = 0;
+  let sinYaw = 0;
+  let cosYaw = 1;
+  let sinPitch = 0;
+  let cosPitch = 1;
+  let lastFrame = 0;
+  let dragging = false;
+  let lastPointerX = 0;
+  let lastPointerY = 0;
+  let joystickPointerId = null;
+  let joystickX = 0;
+  let joystickY = 0;
+  let mobileControlsVisible = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  let minimapVisible = false;
+  let debugVisible = false;
+  let fpsWindowStart = -1;
+  let fpsWindowFrames = 0;
+  let measuredFps = 0;
+  let lastDebugUpdate = -1;
+  let lastMinimapUpdate = -1;
+
+  const player = {
+    x: 0,
+    z: 0,
+    feet: 0,
+    yaw: 0.7,
+    pitch: -0.04,
+    velocityY: 0,
+    grounded: true
+  };
+
+  function clamp(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  function lerp(first, second, amount) {
+    return first + (second - first) * amount;
+  }
+
+  function smoothstep(edge0, edge1, value) {
+    const amount = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+    return amount * amount * (3 - 2 * amount);
+  }
+
+  function normalize(vector) {
+    const length = Math.hypot(vector[0], vector[1], vector[2]) || 1;
+    return [vector[0] / length, vector[1] / length, vector[2] / length];
+  }
+
+  function cross(first, second) {
+    return [
+      first[1] * second[2] - first[2] * second[1],
+      first[2] * second[0] - first[0] * second[2],
+      first[0] * second[1] - first[1] * second[0]
+    ];
+  }
+
+  function mixColor(first, second, amount) {
+    return [
+      Math.round(lerp(first[0], second[0], amount)),
+      Math.round(lerp(first[1], second[1], amount)),
+      Math.round(lerp(first[2], second[2], amount))
+    ];
+  }
+
+  function scaleColor(color, amount) {
+    return [
+      clamp(Math.round(color[0] * amount), 0, 255),
+      clamp(Math.round(color[1] * amount), 0, 255),
+      clamp(Math.round(color[2] * amount), 0, 255)
+    ];
+  }
+
+  function colorString(color) {
+    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+  }
+
+  function hash2(x, z) {
+    let value = Math.imul(x | 0, 374761393) ^ Math.imul(z | 0, 668265263);
+    value = Math.imul(value ^ (value >>> 13), 1274126177);
+    return ((value ^ (value >>> 16)) >>> 0) / 4294967295;
+  }
+
+  function valueNoise(x, z) {
+    const x0 = Math.floor(x);
+    const z0 = Math.floor(z);
+    const tx = smoothstep(0, 1, x - x0);
+    const tz = smoothstep(0, 1, z - z0);
+    const a = hash2(x0, z0);
+    const b = hash2(x0 + 1, z0);
+    const c = hash2(x0, z0 + 1);
+    const d = hash2(x0 + 1, z0 + 1);
+    return lerp(lerp(a, b, tx), lerp(c, d, tx), tz);
+  }
+
+  function fbm(x, z) {
+    let value = 0;
+    let amplitude = 0.5;
+    let frequency = 1;
+    let total = 0;
+    for (let octave = 0; octave < 4; octave += 1) {
+      value += valueNoise(x * frequency, z * frequency) * amplitude;
+      total += amplitude;
+      frequency *= 2;
+      amplitude *= 0.5;
+    }
+    return value / total;
+  }
+
+  function terrainHeightAt(x, z) {
+    const broad = fbm(x * 0.055 + 17.3, z * 0.055 - 8.7);
+    const detail = fbm(x * 0.14 - 4.2, z * 0.14 + 11.5);
+    const radius = Math.hypot(x, z);
+    let height = 2.8 + broad * 3.8 + detail * 1.2;
+    const plainBlend = smoothstep(4, 15, radius);
+    height = lerp(2.8 + detail * 0.8, height, plainBlend);
+    const ridge = 1 - Math.abs(fbm(x * 0.045 - 9.4, z * 0.045 + 4.8) * 2 - 1);
+    const mountainBlend = smoothstep(23, 35, radius);
+    height += mountainBlend * (2.2 + ridge * 9.5);
+    const firstPeak = Math.max(0, 1 - Math.hypot((x + 26) / 8, (z + 3) / 11));
+    const secondPeak = Math.max(0, 1 - Math.hypot((x - 22) / 10, (z - 21) / 9));
+    height += firstPeak * firstPeak * 7.5 + secondPeak * secondPeak * 6.5;
+    const valley = Math.exp(-(((x - 9) * (x - 9)) / 50 + ((z + 12) * (z + 12)) / 120));
+    height -= valley * 2.1;
+    height += Math.sin(x * 0.09 + z * 0.04) * 0.75 + Math.cos(z * 0.11 - x * 0.03) * 0.45;
+    return clamp(height, 0.8, 20);
+  }
+
+  function forestAmountAt(x, z) {
+    const natural = smoothstep(0.48, 0.7, fbm(x * 0.085 + 31, z * 0.085 - 18));
+    const firstGrove = 1 - smoothstep(5, 14, Math.hypot(x + 13, z - 4));
+    const secondGrove = 1 - smoothstep(5, 13, Math.hypot(x - 19, z + 15));
+    return clamp(Math.max(natural, firstGrove * 0.88, secondGrove * 0.82), 0, 1);
+  }
+
+  function terrainColor(x, z, height, forest) {
+    if (height >= 16.5) {
+      return mixColor([137, 151, 151], [230, 226, 204], smoothstep(16.5, 20, height));
+    }
+    if (height >= 12.5) {
+      return mixColor([102, 119, 113], [174, 171, 151], smoothstep(12.5, 18, height) * 0.7);
+    }
+    if (forest > 0.54) {
+      return mixColor([66, 111, 69], [83, 126, 71], forest);
+    }
+    if (height >= 8.5) {
+      return mixColor([104, 137, 76], [127, 132, 83], smoothstep(8.5, 14, height));
+    }
+    const valleyTint = smoothstep(4, 13, Math.hypot(x - 9, z + 12));
+    return mixColor([103, 143, 77], [116, 137, 78], valleyTint * 0.45);
+  }
+
+  function terrainIndex(x, z) {
+    return z * terrainSize + x;
+  }
+
+  function terrainSample(x, z) {
+    const fx = clamp(x + halfWorld, 0, worldSize - 0.001);
+    const fz = clamp(z + halfWorld, 0, worldSize - 0.001);
+    const x0 = Math.floor(fx);
+    const z0 = Math.floor(fz);
+    const tx = smoothstep(0, 1, fx - x0);
+    const tz = smoothstep(0, 1, fz - z0);
+    const h00 = terrain[terrainIndex(x0, z0)];
+    const h10 = terrain[terrainIndex(x0 + 1, z0)];
+    const h01 = terrain[terrainIndex(x0, z0 + 1)];
+    const h11 = terrain[terrainIndex(x0 + 1, z0 + 1)];
+    return lerp(lerp(h00, h10, tx), lerp(h01, h11, tx), tz);
+  }
+
+  function surfaceShader(color, normal) {
+    const daylight = daylightAmount();
+    const skyLight = mixColor([38, 52, 91], [255, 242, 204], daylight);
+    const facing = Math.max(0, normal[0] * sunDirection[0] + normal[1] * sunDirection[1] + normal[2] * sunDirection[2]);
+    const intensity = 0.38 + daylight * 0.24 + facing * (0.22 + daylight * 0.2);
+    return mixColor(scaleColor(color, intensity), skyLight, (1 - daylight) * 0.08);
+  }
+
+  function addFace(points, normal, color) {
+    let centerX = 0;
+    let centerY = 0;
+    let centerZ = 0;
+    for (const point of points) {
+      centerX += point[0];
+      centerY += point[1];
+      centerZ += point[2];
+    }
+    centerX /= points.length;
+    centerY /= points.length;
+    centerZ /= points.length;
+    const shaded = surfaceShader(color, normal);
+    const colors = [];
+    for (let step = 0; step < fogSteps; step += 1) {
+      const amount = step / (fogSteps - 1);
+      colors.push(colorString(mixColor(shaded, fogColor, amount)));
+    }
+    faces.push({
+      points,
+      normal,
+      center: [centerX, centerY, centerZ],
+      colors
+    });
+  }
+
+  function addTerrainTriangle(first, second, third, x, z) {
+    let normal = normalize(cross(
+      [second[0] - first[0], second[1] - first[1], second[2] - first[2]],
+      [third[0] - first[0], third[1] - first[1], third[2] - first[2]]
+    ));
+    if (normal[1] < 0) {
+      normal = [-normal[0], -normal[1], -normal[2]];
+    }
+    const height = (first[1] + second[1] + third[1]) / 3;
+    addFace([first, second, third], normal, terrainColor(x, z, height, forestAmountAt(x, z)));
+  }
+
+  function triangleNormal(first, second, third) {
+    return normalize(cross(
+      [second[0] - first[0], second[1] - first[1], second[2] - first[2]],
+      [third[0] - first[0], third[1] - first[1], third[2] - first[2]]
+    ));
+  }
+
+  function buildTreeMeshes() {
+    const trunkSides = 4;
+    const canopySides = 6;
+    const trunkColor = [111, 76, 48];
+    const canopyDark = [37, 83, 55];
+    const canopyLight = [62, 113, 64];
+    for (const tree of trees) {
+      const trunkTop = tree.base + tree.trunkHeight;
+      for (let side = 0; side < trunkSides; side += 1) {
+        const angle = side * Math.PI * 2 / trunkSides + Math.PI * 0.25;
+        const nextAngle = angle + Math.PI * 2 / trunkSides;
+        const bottom = [tree.x + Math.cos(angle) * tree.trunkRadius, tree.base, tree.z + Math.sin(angle) * tree.trunkRadius];
+        const nextBottom = [tree.x + Math.cos(nextAngle) * tree.trunkRadius, tree.base, tree.z + Math.sin(nextAngle) * tree.trunkRadius];
+        const top = [bottom[0], trunkTop, bottom[2]];
+        const nextTop = [nextBottom[0], trunkTop, nextBottom[2]];
+        addFace([bottom, top, nextTop], triangleNormal(bottom, top, nextTop), trunkColor);
+        addFace([bottom, nextTop, nextBottom], triangleNormal(bottom, nextTop, nextBottom), trunkColor);
+      }
+
+      const layerHeight = tree.canopyHeight / 4;
+      const layerWidths = [1.18, 0.94, 0.7, 0.46];
+      for (let layer = 0; layer < 4; layer += 1) {
+        const bottomY = tree.base + tree.trunkHeight + layer * layerHeight * 0.7;
+        const topY = bottomY + layerHeight * 1.3;
+        const radius = tree.width * layerWidths[layer] * 0.5;
+        const tip = [tree.x, topY, tree.z];
+        const baseColor = layer % 2 === 0 ? canopyDark : canopyLight;
+        for (let side = 0; side < canopySides; side += 1) {
+          const angle = side * Math.PI * 2 / canopySides + Math.PI / 6;
+          const nextAngle = angle + Math.PI * 2 / canopySides;
+          const left = [tree.x + Math.cos(angle) * radius, bottomY, tree.z + Math.sin(angle) * radius];
+          const right = [tree.x + Math.cos(nextAngle) * radius, bottomY, tree.z + Math.sin(nextAngle) * radius];
+          const faceColor = side % 3 === 0 ? mixColor(baseColor, [18, 42, 26], 0.14) : baseColor;
+          addFace([left, tip, right], triangleNormal(left, tip, right), faceColor);
+        }
+      }
+    }
+  }
+
+  function buildStars() {
+    stars.length = 0;
+    for (let index = 0; index < 220; index += 1) {
+      const azimuth = hash2(index * 7 + 19, index * 13 - 31) * Math.PI * 2;
+      const elevation = 0.08 + hash2(index * 17 + 43, index * 23 - 11) * 1.38;
+      const horizontal = Math.cos(elevation);
+      const brightness = 0.35 + hash2(index * 29 + 71, index * 37 - 17) * 0.65;
+      stars.push({
+        direction: [Math.cos(azimuth) * horizontal, Math.sin(elevation), Math.sin(azimuth) * horizontal],
+        size: brightness > 0.82 ? 2 : 1,
+        brightness,
+        color: hash2(index * 41 + 5, index * 47 - 23) > 0.72 ? '#fff0c4' : '#dce8ff'
+      });
+    }
+  }
+
+  function buildWorld() {
+    for (let gridZ = 0; gridZ < terrainSize; gridZ += 1) {
+      for (let gridX = 0; gridX < terrainSize; gridX += 1) {
+        terrain[terrainIndex(gridX, gridZ)] = terrainHeightAt(gridX - halfWorld, gridZ - halfWorld);
+      }
+    }
+
+    for (let gridZ = 0; gridZ < worldSize; gridZ += 1) {
+      for (let gridX = 0; gridX < worldSize; gridX += 1) {
+        const x = gridX - halfWorld;
+        const z = gridZ - halfWorld;
+        const p00 = [x, terrain[terrainIndex(gridX, gridZ)], z];
+        const p10 = [x + 1, terrain[terrainIndex(gridX + 1, gridZ)], z];
+        const p01 = [x, terrain[terrainIndex(gridX, gridZ + 1)], z + 1];
+        const p11 = [x + 1, terrain[terrainIndex(gridX + 1, gridZ + 1)], z + 1];
+        addTerrainTriangle(p00, p11, p10, x + 0.5, z + 0.5);
+        addTerrainTriangle(p00, p01, p11, x + 0.5, z + 0.5);
+      }
+    }
+
+    for (let gridZ = 0; gridZ < worldSize; gridZ += 1) {
+      for (let gridX = 0; gridX < worldSize; gridX += 1) {
+        const x = gridX - halfWorld + 0.5;
+        const z = gridZ - halfWorld + 0.5;
+        const forest = forestAmountAt(x, z);
+        const radius = Math.hypot(x, z);
+        const chance = hash2(gridX * 3 + 71, gridZ * 5 - 23);
+        const spacingClear = !trees.some(existing => Math.hypot(existing.x - x, existing.z - z) < 1.6);
+        if (forest > 0.5 && radius > 7 && terrainSample(x, z) < 14 && chance > 0.58 && spacingClear) {
+          const tree = {
+            x: x + (hash2(gridX + 14, gridZ - 9) - 0.5) * 0.22,
+            z: z + (hash2(gridX - 18, gridZ + 27) - 0.5) * 0.22,
+            base: terrainSample(x, z),
+            trunkHeight: 5.2 + hash2(gridX - 5, gridZ + 8) * 2.4,
+            canopyHeight: 6 + hash2(gridX + 31, gridZ - 17) * 2,
+            width: 4.2 + hash2(gridX - 37, gridZ + 44) * 1.6,
+            trunkRadius: 0.38 + hash2(gridX + 7, gridZ - 31) * 0.18
+          };
+          trees.push(tree);
+          treeColliders.push({ x: tree.x, z: tree.z, radius: tree.trunkRadius + 0.16 });
+        }
+      }
+    }
+
+    buildTreeMeshes();
+  }
+
+  function isBlocked(x, z) {
+    for (const tree of treeColliders) {
+      const dx = x - tree.x;
+      const dz = z - tree.z;
+      if (dx * dx + dz * dz < tree.radius * tree.radius) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function moveAxis(axis, amount) {
+    if (amount === 0) {
+      return;
+    }
+    let nextX = player.x;
+    let nextZ = player.z;
+    if (axis === 'x') {
+      nextX += amount;
+    } else {
+      nextZ += amount;
+    }
+    nextX = clamp(nextX, -halfWorld + 0.8, halfWorld - 0.8);
+    nextZ = clamp(nextZ, -halfWorld + 0.8, halfWorld - 0.8);
+    const nextHeight = terrainSample(nextX, nextZ);
+    if (player.grounded && nextHeight > player.feet + 1.2) {
+      return;
+    }
+    if (!isBlocked(nextX, nextZ)) {
+      player.x = nextX;
+      player.z = nextZ;
+    }
+  }
+
+  function updatePlayer(delta) {
+    let forward = 0;
+    let strafe = 0;
+    if (keys.w || keys.arrowup) {
+      forward += 1;
+    }
+    if (keys.s || keys.arrowdown) {
+      forward -= 1;
+    }
+    if (keys.d || keys.arrowright) {
+      strafe += 1;
+    }
+    if (keys.a || keys.arrowleft) {
+      strafe -= 1;
+    }
+    forward -= joystickY;
+    strafe += joystickX;
+    const amount = Math.hypot(forward, strafe);
+    if (amount > 0) {
+      forward /= amount;
+      strafe /= amount;
+      const speed = keys.shift ? movementSpeed * 1.65 : movementSpeed;
+      const moveX = (Math.sin(player.yaw) * forward + Math.cos(player.yaw) * strafe) * speed * delta;
+      const moveZ = (Math.cos(player.yaw) * forward - Math.sin(player.yaw) * strafe) * speed * delta;
+      moveAxis('x', moveX);
+      moveAxis('z', moveZ);
+    }
+
+    const ground = terrainSample(player.x, player.z);
+    if (player.grounded && player.velocityY === 0) {
+      if (ground > player.feet) {
+        player.feet = ground;
+      } else if (ground < player.feet - 0.3) {
+        player.grounded = false;
+        player.velocityY = 0;
+      }
+    }
+    if (!player.grounded) {
+      player.velocityY -= 18 * delta;
+      player.feet += player.velocityY * delta;
+      if (player.feet <= ground) {
+        player.feet = ground;
+        player.velocityY = 0;
+        player.grounded = true;
+      }
+    }
+  }
+
+  function updateCameraBasis() {
+    cameraX = player.x;
+    cameraY = player.feet + eyeHeight;
+    cameraZ = player.z;
+    sinYaw = Math.sin(player.yaw);
+    cosYaw = Math.cos(player.yaw);
+    sinPitch = Math.sin(player.pitch);
+    cosPitch = Math.cos(player.pitch);
+    focalLength = rows * 0.94;
+  }
+
+  function toCamera(x, y, z) {
+    const dx = x - cameraX;
+    const dy = y - cameraY;
+    const dz = z - cameraZ;
+    const depth = dx * sinYaw + dz * cosYaw;
+    const lateral = dx * cosYaw - dz * sinYaw;
+    const vertical = dy * cosPitch - depth * sinPitch;
+    return [lateral, vertical, depth];
+  }
+
+  function projectWorld(x, y, z) {
+    const point = toCamera(x, y, z);
+    if (point[2] <= nearPlane) {
+      return null;
+    }
+    return [
+      columns * 0.5 + point[0] * focalLength / point[2],
+      rows * 0.5 - point[1] * focalLength / point[2],
+      point[2]
+    ];
+  }
+
+  function clipNear(points) {
+    const clipped = [];
+    for (let index = 0; index < points.length; index += 1) {
+      const current = points[index];
+      const next = points[(index + 1) % points.length];
+      const currentInside = current[2] >= nearPlane;
+      const nextInside = next[2] >= nearPlane;
+      if (currentInside) {
+        clipped.push(current);
+      }
+      if (currentInside !== nextInside) {
+        const amount = (nearPlane - current[2]) / (next[2] - current[2]);
+        clipped.push([
+          lerp(current[0], next[0], amount),
+          lerp(current[1], next[1], amount),
+          nearPlane
+        ]);
+      }
+    }
+    return clipped;
+  }
+
+  function pointInPolygon(x, y, polygon) {
+    let inside = false;
+    for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index, index += 1) {
+      const currentPoint = polygon[index];
+      const previousPoint = polygon[previous];
+      const intersects = currentPoint[1] > y !== previousPoint[1] > y && x < (previousPoint[0] - currentPoint[0]) * (y - currentPoint[1]) / (previousPoint[1] - currentPoint[1]) + currentPoint[0];
+      if (intersects) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  function fogIndexForDepth(depth) {
+    const distance = Math.max(12, renderDistance);
+    const amount = clamp((depth - 7) / distance, 0, 1) * fogStrength;
+    return clamp(Math.floor(amount * fogSteps), 0, fogSteps - 1);
+  }
+
+  function drawCell(gridX, gridY, color, depth) {
+    if (gridX < 0 || gridY < 0 || gridX >= columns || gridY >= rows) {
+      return;
+    }
+    const index = gridY * columns + gridX;
+    if (depth >= depthBuffer[index]) {
+      return;
+    }
+    depthBuffer[index] = depth;
+    colorBuffer[index] = color;
+  }
+
+  function rasterFace(cameraPoints, face) {
+    if (cameraPoints.length < 3) {
+      return;
+    }
+    const projected = cameraPoints.map(point => [
+      columns * 0.5 + point[0] * focalLength / point[2],
+      rows * 0.5 - point[1] * focalLength / point[2],
+      point[2]
+    ]);
+    let minimumX = Infinity;
+    let minimumY = Infinity;
+    let maximumX = -Infinity;
+    let maximumY = -Infinity;
+    for (const point of projected) {
+      minimumX = Math.min(minimumX, point[0]);
+      minimumY = Math.min(minimumY, point[1]);
+      maximumX = Math.max(maximumX, point[0]);
+      maximumY = Math.max(maximumY, point[1]);
+    }
+    const startX = clamp(Math.floor(minimumX), 0, columns - 1);
+    const endX = clamp(Math.ceil(maximumX), 0, columns - 1);
+    const startY = clamp(Math.floor(minimumY), 0, rows - 1);
+    const endY = clamp(Math.ceil(maximumY), 0, rows - 1);
+    if (startX > endX || startY > endY) {
+      return;
+    }
+    const first = projected[0];
+    const second = projected[1];
+    const third = projected[2];
+    const denominator = (second[1] - third[1]) * (first[0] - third[0]) + (third[0] - second[0]) * (first[1] - third[1]);
+    if (Math.abs(denominator) < 0.0001) {
+      return;
+    }
+    for (let gridY = startY; gridY <= endY; gridY += 1) {
+      for (let gridX = startX; gridX <= endX; gridX += 1) {
+        const sampleX = gridX + 0.5;
+        const sampleY = gridY + 0.5;
+        const weightA = ((second[1] - third[1]) * (sampleX - third[0]) + (third[0] - second[0]) * (sampleY - third[1])) / denominator;
+        const weightB = ((third[1] - first[1]) * (sampleX - third[0]) + (first[0] - third[0]) * (sampleY - third[1])) / denominator;
+        const weightC = 1 - weightA - weightB;
+        const inside = projected.length === 3
+          ? weightA >= -0.0001 && weightB >= -0.0001 && weightC >= -0.0001
+          : pointInPolygon(sampleX, sampleY, projected);
+        if (!inside) {
+          continue;
+        }
+        const inverseDepth = weightA / first[2] + weightB / second[2] + weightC / third[2];
+        if (inverseDepth <= 0) {
+          continue;
+        }
+        const depth = 1 / inverseDepth;
+        drawCell(gridX, gridY, face.colors[fogIndexForDepth(depth)], depth);
+      }
+    }
+  }
+
+  function daylightAmount() {
+    return clamp(Math.sin((timeOfDay - 6) / 12 * Math.PI) * 0.5 + 0.5, 0, 1);
+  }
+
+  function getCelestialState() {
+    const daylight = daylightAmount();
+    const phase = timeOfDay / 24 * Math.PI * 2 - Math.PI / 2;
+    const solarDirection = normalize([Math.cos(phase) * 0.55, Math.sin(phase) * 0.42, 0.72]);
+    const moon = daylight < 0.28;
+    const direction = moon
+      ? normalize([-solarDirection[0], Math.max(0.12, -solarDirection[1]), 0.72])
+      : solarDirection;
+    const point = projectWorld(
+      cameraX + direction[0] * 100,
+      cameraY + direction[1] * 100,
+      cameraZ + direction[2] * 100
+    );
+    return { daylight, moon, direction, point };
+  }
+
+  function drawSkybox(state) {
+    const sunset = clamp(1 - Math.abs(timeOfDay - 18) / 5, 0, 1);
+    const top = mixColor(mixColor([24, 36, 73], [79, 145, 188], state.daylight), [83, 91, 143], sunset * 0.45);
+    const middle = mixColor(mixColor([58, 72, 111], [143, 190, 205], state.daylight), [224, 157, 119], sunset * 0.65);
+    const bottom = mixColor(mixColor([106, 101, 126], [218, 204, 164], state.daylight), [247, 193, 130], sunset * 0.6);
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, colorString(top));
+    sky.addColorStop(0.46, colorString(middle));
+    sky.addColorStop(1, colorString(bottom));
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const night = clamp((0.38 - state.daylight) / 0.38, 0, 1);
+    if (night > 0) {
+      ctx.globalAlpha = 1;
+      for (const star of stars) {
+        const point = projectWorld(
+          cameraX + star.direction[0] * 100,
+          cameraY + star.direction[1] * 100,
+          cameraZ + star.direction[2] * 100
+        );
+        if (!point || point[0] < -2 || point[0] > columns + 2 || point[1] < -2 || point[1] > rows + 2) {
+          continue;
+        }
+        const x = Math.floor(point[0] * cellSize);
+        const y = Math.floor(point[1] * cellSize);
+        ctx.globalAlpha = night * star.brightness;
+        ctx.fillStyle = star.color;
+        ctx.fillRect(x, y, star.size, star.size);
+        if (star.size > 1) {
+          ctx.globalAlpha = night * star.brightness * 0.28;
+          ctx.fillRect(x - 1, y, 4, 1);
+          ctx.fillRect(x, y - 1, 1, 4);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    if (state.point && ctx.createRadialGradient) {
+      const glowX = state.point[0] * cellSize;
+      const glowY = state.point[1] * cellSize;
+      const glowRadius = Math.max(22, rows * cellSize * 0.24);
+      const glow = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, glowRadius);
+      glow.addColorStop(0, state.moon ? 'rgba(190, 210, 255, 0.2)' : 'rgba(255, 220, 140, 0.22)');
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  function drawCelestialBody(state) {
+    if (!state.point) {
+      return;
+    }
+    const radius = state.moon ? 2.5 : 3.4;
+    const startX = clamp(Math.floor(state.point[0] - radius - 1), 0, columns - 1);
+    const endX = clamp(Math.ceil(state.point[0] + radius + 1), 0, columns - 1);
+    const startY = clamp(Math.floor(state.point[1] - radius - 1), 0, rows - 1);
+    const endY = clamp(Math.ceil(state.point[1] + radius + 1), 0, rows - 1);
+    const coreColor = state.moon ? '#eef1ff' : '#ffe4a0';
+    const haloColor = state.moon ? '#aebce8' : '#f1c978';
+    for (let gridY = startY; gridY <= endY; gridY += 1) {
+      for (let gridX = startX; gridX <= endX; gridX += 1) {
+        const distance = Math.hypot(gridX + 0.5 - state.point[0], gridY + 0.5 - state.point[1]);
+        if (distance <= radius + 0.8) {
+          drawCell(gridX, gridY, distance <= radius ? coreColor : haloColor, 1e6);
+        }
+      }
+    }
+  }
+
+  function drawAtmosphere() {
+    if (ctx.createRadialGradient) {
+      const vignette = ctx.createRadialGradient(
+        canvas.width * 0.5,
+        canvas.height * 0.44,
+        canvas.height * 0.18,
+        canvas.width * 0.5,
+        canvas.height * 0.44,
+        canvas.height * 0.82
+      );
+      const edgeColor = daylightAmount() < 0.3 ? 'rgba(3, 7, 25, 0.3)' : 'rgba(34, 22, 12, 0.16)';
+      vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      vignette.addColorStop(1, edgeColor);
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.fillStyle = daylightAmount() < 0.3 ? 'rgba(32, 48, 112, 0.07)' : 'rgba(255, 194, 112, 0.025)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function drawBuffer() {
+    for (let index = 0; index < depthBuffer.length; index += 1) {
+      if (depthBuffer[index] === Infinity) {
+        continue;
+      }
+      const gridX = index % columns;
+      const gridY = Math.floor(index / columns);
+      ctx.fillStyle = colorBuffer[index];
+      ctx.fillRect(gridX * cellSize, gridY * cellSize, cellSize, cellSize);
+    }
+  }
+
+  function render() {
+    updateCameraBasis();
+    const celestialState = getCelestialState();
+    drawSkybox(celestialState);
+    depthBuffer.fill(Infinity);
+    drawCelestialBody(celestialState);
+
+    for (const face of faces) {
+      const towardCameraX = cameraX - face.center[0];
+      const towardCameraY = cameraY - face.center[1];
+      const towardCameraZ = cameraZ - face.center[2];
+      const facing = face.normal[0] * towardCameraX + face.normal[1] * towardCameraY + face.normal[2] * towardCameraZ;
+      if (facing <= 0) {
+        continue;
+      }
+      const centerPoint = toCamera(face.center[0], face.center[1], face.center[2]);
+      if (centerPoint[2] <= -2 || centerPoint[2] > renderDistance + 2) {
+        continue;
+      }
+      if (centerPoint[2] > 0 && (Math.abs(centerPoint[0]) > centerPoint[2] * 1.55 + 3 || Math.abs(centerPoint[1]) > centerPoint[2] * 1.25 + 3)) {
+        continue;
+      }
+      const cameraPoints = face.points.map(point => toCamera(point[0], point[1], point[2]));
+      const clipped = clipNear(cameraPoints);
+      if (clipped.length < 3 || clipped.every(point => point[2] > renderDistance)) {
+        continue;
+      }
+      rasterFace(clipped, face);
+    }
+    drawBuffer();
+    drawAtmosphere();
+  }
+
+  function resize() {
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    const aspect = width / height;
+    columns = 152;
+    rows = clamp(Math.round(columns / aspect), 80, 112);
+    canvas.width = columns * cellSize;
+    canvas.height = rows * cellSize;
+    depthBuffer = new Float32Array(columns * rows);
+    colorBuffer = new Array(columns * rows);
+    ctx.imageSmoothingEnabled = false;
+  }
+
+  function requestLook() {
+    if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
+      const request = canvas.requestPointerLock();
+      if (request && typeof request.catch === 'function') {
+        request.catch(() => {});
+      }
+    }
+  }
+
+  function formatTime(value) {
+    const totalMinutes = Math.round(clamp(value, 0, 24) * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+
+  function applyUiScale() {
+    if (ui && ui.style && ui.style.setProperty) {
+      ui.style.setProperty('--ui-scale', uiScale);
+    }
+    uiScaleValue.textContent = `${Math.round(uiScale * 100)}%`;
+  }
+
+  function applyTheme() {
+    document.body.classList.toggle('dark-mode', darkMode);
+    document.body.classList.toggle('light-mode', !darkMode);
+  }
+
+  function updateTimeLabels() {
+    const label = formatTime(timeOfDay);
+    timeValue.textContent = label;
+    debugTime.textContent = label;
+  }
+
+  function updateSettingsLabels() {
+    distanceValue.textContent = String(Math.round(renderDistance));
+    fogValue.textContent = `${Math.round(fogStrength * 100)}%`;
+    sensitivityValue.textContent = lookSensitivity.toFixed(1);
+    speedValue.textContent = movementSpeed.toFixed(1);
+    uiScaleValue.textContent = `${Math.round(uiScale * 100)}%`;
+    debugDistance.textContent = String(Math.round(renderDistance));
+  }
+
+  function updateMobileControls() {
+    mobileControls.classList.toggle('active', mobileControlsVisible);
+    mobileToggle.checked = mobileControlsVisible;
+  }
+
+  function updateMinimapButton() {
+    minimapPanel.hidden = !minimapVisible;
+    minimapButton.textContent = minimapVisible ? 'Minimap: On' : 'Minimap: Off';
+  }
+
+  function jump() {
+    if (player.grounded) {
+      player.velocityY = 6.8;
+      player.grounded = false;
+    }
+  }
+
+  function resetJoystick() {
+    joystickPointerId = null;
+    joystickX = 0;
+    joystickY = 0;
+    joystickKnob.style.transform = 'translate(-50%, -50%)';
+  }
+
+  function updateJoystick(event) {
+    const bounds = joystick.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) {
+      return;
+    }
+    const radius = bounds.width * 0.32;
+    const centerX = bounds.left + bounds.width * 0.5;
+    const centerY = bounds.top + bounds.height * 0.5;
+    const offsetX = clamp(event.clientX - centerX, -radius, radius);
+    const offsetY = clamp(event.clientY - centerY, -radius, radius);
+    joystickX = offsetX / radius;
+    joystickY = offsetY / radius;
+    joystickKnob.style.transform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px)`;
+  }
+
+  function beginJoystick(event) {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    joystickPointerId = event.pointerId;
+    if (joystick.setPointerCapture) {
+      joystick.setPointerCapture(event.pointerId);
+    }
+    updateJoystick(event);
+  }
+
+  function moveJoystick(event) {
+    if (joystickPointerId === event.pointerId) {
+      event.preventDefault();
+      updateJoystick(event);
+    }
+  }
+
+  function endJoystick(event) {
+    if (event && joystickPointerId !== null && event.pointerId !== joystickPointerId) {
+      return;
+    }
+    resetJoystick();
+  }
+
+  function updateFps(now) {
+    if (fpsWindowStart < 0) {
+      fpsWindowStart = now;
+      return;
+    }
+    fpsWindowFrames += 1;
+    if (now - fpsWindowStart < 500) {
+      return;
+    }
+    measuredFps = Math.round(fpsWindowFrames * 1000 / (now - fpsWindowStart));
+    fpsWindowStart = now;
+    fpsWindowFrames = 0;
+  }
+
+  function updateDebug(now) {
+    if (now - lastDebugUpdate < 100) {
+      return;
+    }
+    lastDebugUpdate = now;
+    coordinateValue.textContent = `${player.x.toFixed(1)}, ${player.feet.toFixed(1)}, ${player.z.toFixed(1)}`;
+    fpsValue.textContent = String(measuredFps);
+    debugTime.textContent = formatTime(timeOfDay);
+    debugDistance.textContent = String(Math.round(renderDistance));
+  }
+
+  function drawMinimap(now) {
+    if (!minimapVisible || !minimapCtx || now - lastMinimapUpdate < 150) {
+      return;
+    }
+    lastMinimapUpdate = now;
+    const size = minimapCanvas.width;
+    const scale = size / worldSize;
+    minimapCtx.clearRect(0, 0, size, size);
+    minimapCtx.fillStyle = '#f4f4f4';
+    minimapCtx.fillRect(0, 0, size, size);
+    for (let gridZ = 0; gridZ < worldSize; gridZ += 2) {
+      for (let gridX = 0; gridX < worldSize; gridX += 2) {
+        const x = gridX - halfWorld + 1;
+        const z = gridZ - halfWorld + 1;
+        const height = terrainSample(x, z);
+        const color = terrainColor(x, z, height, forestAmountAt(x, z));
+        minimapCtx.fillStyle = colorString(color);
+        minimapCtx.fillRect(gridX * scale, gridZ * scale, scale * 2 + 1, scale * 2 + 1);
+      }
+    }
+    minimapCtx.fillStyle = '#2d603b';
+    for (const tree of trees) {
+      if (Math.hypot(tree.x - player.x, tree.z - player.z) <= renderDistance) {
+        const x = (tree.x + halfWorld) * scale;
+        const z = (tree.z + halfWorld) * scale;
+        minimapCtx.fillRect(x - 1, z - 1, 3, 3);
+      }
+    }
+    const playerX = (player.x + halfWorld) * scale;
+    const playerZ = (player.z + halfWorld) * scale;
+    minimapCtx.save();
+    minimapCtx.translate(playerX, playerZ);
+    minimapCtx.rotate(Math.PI - player.yaw);
+    minimapCtx.beginPath();
+    minimapCtx.moveTo(0, -7);
+    minimapCtx.lineTo(-5, 5);
+    minimapCtx.lineTo(5, 5);
+    minimapCtx.closePath();
+    minimapCtx.fillStyle = '#ffffff';
+    minimapCtx.strokeStyle = '#202020';
+    minimapCtx.lineWidth = 1.5;
+    minimapCtx.fill();
+    minimapCtx.stroke();
+    minimapCtx.restore();
+  }
+
+  applyUiScale();
+  applyTheme();
+  updateTimeLabels();
+  updateSettingsLabels();
+  updateMobileControls();
+  updateMinimapButton();
+
+  buildWorld();
+  buildStars();
+  player.feet = terrainSample(player.x, player.z);
+  resize();
+  canvas.focus();
+
+  menuButton.addEventListener('click', () => {
+    sidebar.hidden = !sidebar.hidden;
+  });
+  closeMenu.addEventListener('click', () => {
+    sidebar.hidden = true;
+  });
+  timeInput.addEventListener('input', () => {
+    timeOfDay = Number(timeInput.value);
+    updateTimeLabels();
+  });
+  distanceInput.addEventListener('input', () => {
+    renderDistance = Number(distanceInput.value);
+    updateSettingsLabels();
+  });
+  fogInput.addEventListener('input', () => {
+    fogStrength = Number(fogInput.value) / 100;
+    updateSettingsLabels();
+  });
+  sensitivityInput.addEventListener('input', () => {
+    lookSensitivity = Number(sensitivityInput.value);
+    updateSettingsLabels();
+  });
+  speedInput.addEventListener('input', () => {
+    movementSpeed = Number(speedInput.value);
+    updateSettingsLabels();
+  });
+  uiScaleInput.addEventListener('input', () => {
+    uiScale = Number(uiScaleInput.value) / 100;
+    applyUiScale();
+    updateSettingsLabels();
+  });
+  darkToggle.addEventListener('change', () => {
+    darkMode = darkToggle.checked;
+    applyTheme();
+  });
+  mobileToggle.addEventListener('change', () => {
+    mobileControlsVisible = mobileToggle.checked;
+    updateMobileControls();
+  });
+  debugButton.addEventListener('click', () => {
+    debugVisible = !debugVisible;
+    debugPanel.hidden = !debugVisible;
+    lastDebugUpdate = -1;
+  });
+  closeDebug.addEventListener('click', () => {
+    debugVisible = false;
+    debugPanel.hidden = true;
+  });
+  minimapButton.addEventListener('click', () => {
+    minimapVisible = !minimapVisible;
+    lastMinimapUpdate = -1;
+    updateMinimapButton();
+  });
+
+  canvas.addEventListener('click', requestLook);
+  canvas.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse' || event.pointerType === 'touch') {
+      dragging = true;
+      lastPointerX = event.clientX;
+      lastPointerY = event.clientY;
+      if (event.pointerType === 'touch' && canvas.setPointerCapture) {
+        canvas.setPointerCapture(event.pointerId);
+      }
+    }
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' && dragging) {
+      const sensitivity = 0.0022 * lookSensitivity * 1.8;
+      player.yaw += (event.clientX - lastPointerX) * sensitivity;
+      player.pitch = clamp(player.pitch - (event.clientY - lastPointerY) * sensitivity, -1.35, 1.35);
+      lastPointerX = event.clientX;
+      lastPointerY = event.clientY;
+    }
+  });
+  joystick.addEventListener('pointerdown', beginJoystick);
+  joystick.addEventListener('pointermove', moveJoystick);
+  joystick.addEventListener('pointerup', endJoystick);
+  joystick.addEventListener('pointercancel', endJoystick);
+  jumpButton.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    jump();
+  });
+  jumpButton.addEventListener('click', event => {
+    if (event.detail === 0) {
+      jump();
+    }
+  });
+  window.addEventListener('pointerup', event => {
+    dragging = false;
+    endJoystick(event);
+  });
+  window.addEventListener('pointercancel', endJoystick);
+  window.addEventListener('resize', resize);
+  document.addEventListener('mousemove', event => {
+    const sensitivity = 0.0022 * lookSensitivity;
+    if (document.pointerLockElement === canvas) {
+      player.yaw += event.movementX * sensitivity;
+      player.pitch = clamp(player.pitch - event.movementY * sensitivity, -1.35, 1.35);
+    } else if (dragging) {
+      player.yaw += (event.clientX - lastPointerX) * sensitivity * 1.8;
+      player.pitch = clamp(player.pitch - (event.clientY - lastPointerY) * sensitivity * 1.8, -1.35, 1.35);
+      lastPointerX = event.clientX;
+      lastPointerY = event.clientY;
+    }
+  });
+  document.addEventListener('pointerlockchange', () => {
+    canvas.style.cursor = document.pointerLockElement === canvas ? 'none' : 'crosshair';
+  });
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      sidebar.hidden = true;
+      debugVisible = false;
+      debugPanel.hidden = true;
+    }
+    const key = event.key.toLowerCase();
+    if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift', ' '].includes(key)) {
+      keys[key] = true;
+      event.preventDefault();
+    }
+    if (event.code === 'Space') {
+      jump();
+      event.preventDefault();
+    }
+  });
+  window.addEventListener('keyup', event => {
+    keys[event.key.toLowerCase()] = false;
+  });
+  window.addEventListener('blur', () => {
+    for (const key of Object.keys(keys)) {
+      keys[key] = false;
+    }
+    resetJoystick();
+  });
+
+  function frame(now) {
+    if (lastFrame !== 0 && now - lastFrame < 1000 / 30) {
+      window.requestAnimationFrame(frame);
+      return;
+    }
+    const delta = lastFrame === 0 ? 1 / 60 : Math.min(0.05, (now - lastFrame) / 1000);
+    lastFrame = now;
+    updatePlayer(delta);
+    render();
+    updateFps(now);
+    updateDebug(now);
+    drawMinimap(now);
+    window.requestAnimationFrame(frame);
+  }
+
+  window.requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
